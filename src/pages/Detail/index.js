@@ -1,40 +1,166 @@
-import { useLayoutEffect } from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native'
+import { useLayoutEffect, useState } from 'react';
+import { View, Text, StyleSheet, Pressable, ScrollView, Image, Modal, Share } from 'react-native'
 import { useRoute, useNavigation } from '@react-navigation/native'
 
-import { Entypo } from '@expo/vector-icons'
+import { Entypo, AntDesign, Feather } from '@expo/vector-icons'
+
+import { Ingredients } from '../../components/Ingredients';
+import { Instructions } from '../../components/Instructions';
+import { VideoView } from '../../components/VideoView';
+import { isFavorite, saveFavorite, removeItem } from '../../utils/storage';
 
 export function Detail() {
     const route = useRoute();
     const navigation = useNavigation()
 
-    function handlePress(){
-        console.log("clicou")
-    }
+    const [showVideo, setShowVideo] = useState(false)
+    const [favorite, setFavorite] = useState(false)
 
     useLayoutEffect(() => {
+
+        async function getStatusFavorite() {
+            const recipeFavorite = await isFavorite(route.params?.data)
+            setFavorite(recipeFavorite)
+        }
+        getStatusFavorite();
 
         navigation.setOptions({
             title: route.params?.data ? route.params?.data.name : "Detalhes da receita",
             headerRight: () => (
-                <Pressable onPress={handlePress} >
-                    <Entypo name='heart' size={28} color="#FF4141" />
+                <Pressable onPress={ () => handleFavoriteRecipe(route.params?.data) } >
+                    {favorite ? (
+                        <Entypo 
+                        name="heart" 
+                        size={28} 
+                        color="#FF4141" 
+                        />
+                    ) : (
+                        <Entypo 
+                        name="heart-outlined"
+                        size={28} 
+                        color="#FF4141" 
+                        />
+                    )}
                 </Pressable>
             )
         })
 
-    }, [navigation, route.params?.data])
+    }, [navigation, route.params?.data, favorite])
 
+    async function handleFavoriteRecipe(recipe){
+        if(favorite){
+           await removeItem(recipe.id)
+           setFavorite(false)
+        } else{
+            await saveFavorite("@appreceitas", recipe)
+            setFavorite(true)
+        }
+    }
+
+    function handleOpenVideo() {
+        setShowVideo(true)
+    }
+
+    async function shareRecipe() {
+        try {
+            await Share.share({
+                url: "https://google.com",
+                message: `Receita: ${route.params?.data.name}\nIngredientes: ${route.params?.data.total_ingredients}\nVi lá no App receita fácil.`
+            })
+
+        } catch (error) {
+            console.log(error);
+        }
+    }
     return (
-        <View style={styles.container}>
-            <Text>Página detail</Text>
-            <Text>{route.params?.data.name}</Text>
-        </View>
+        <ScrollView contentContainerStyle={{ paddingBottom: 14 }} style={styles.container} showsHorizontalScrollIndicator={false} >
+            <Pressable onPress={handleOpenVideo}>
+                <View style={styles.playIcon}>
+                    <AntDesign name='playcircleo' size={48} color="#FAFAFA" />
+                </View>
+                <Image source={{ uri: route.params?.data.cover }} style={styles.cover} />
+            </Pressable>
+
+            <View style={styles.headerDetails}>
+                <View>
+                    <Text style={styles.title} >{route.params?.data.name}</Text>
+                    <Text style={styles.ingredientsText} >Ingredientes ({route.params?.data.total_ingredients})</Text>
+                </View>
+                <Pressable onPress={shareRecipe} >
+                    <Feather name='share-2' size={24} color="#121212" />
+                </Pressable>
+            </View>
+
+            {route.params?.data.ingredients.map(({ id, name, amount }) => (
+                <Ingredients key={id} name={name} amount={amount} />
+            ))}
+
+            <View style={styles.instructionsArea}>
+                <Text style={styles.instructionsText} >Modo de preparo</Text>
+                <Feather name='arrow-down' size={24} color="#FFF" />
+            </View>
+
+            {route.params?.data.instructions.map(({ id, text }) => (
+                <Instructions key={id} text={text} id={id} />
+            ))}
+
+            <Modal visible={showVideo} animationType='slide'>
+                <VideoView handleClose={() => setShowVideo(false)}
+                    videoUrl={route.params?.data.video} />
+            </Modal>
+
+        </ScrollView>
     )
 }
 
 const styles = StyleSheet.create({
     container: {
-        backgroundColor: "#CECE",
+        backgroundColor: "#F3F9FF",
+        paddingTop: 14,
+        paddingEnd: 14,
+        paddingStart: 14
+    },
+    cover: {
+        width: "100%",
+        height: 200,
+        borderRadius: 14,
+    },
+    playIcon: {
+        position: 'absolute',
+        zIndex: 9,
+        top: 0, left: 0, right: 0, bottom: 0,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    headerDetails: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 14
+    },
+    title: {
+        fontSize: 18,
+        marginTop: 14,
+        fontWeight: 'bold',
+        color: "#000",
+        marginBottom: 4
+    },
+    ingredientsText: {
+        fontSize: 16,
+        marginBottom: 14
+    },
+    instructionsArea: {
+        backgroundColor: "#4CBE6C",
+        flexDirection: 'row',
+        padding: 8,
+        borderRadius: 4,
+        marginBottom: 14,
+
+    },
+    instructionsText: {
+        fontSize: 18,
+        fontWeight: 500,
+        color: "#FFF",
+        marginRight: 8,
     }
 })

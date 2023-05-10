@@ -1,19 +1,23 @@
-import { View, Text, StyleSheet, SafeAreaView, TextInput, TouchableOpacity,
-FlatList } from 'react-native'
+import {
+    View, Text, StyleSheet, SafeAreaView, TextInput, TouchableOpacity,
+    FlatList
+} from 'react-native'
 import { Logo } from '../../components/Logo'
 import { Ionicons } from '@expo/vector-icons'
 import { useEffect, useState } from 'react'
 import api from '../../services/api'
 import { FoodList } from '../../components/FoodList'
-
+import { useNavigation } from '@react-navigation/native'
+import { Text as MotiText } from 'moti'
 export function Home() {
 
     const [inputValue, setInputValue] = useState("")
-    const [foods, setFoods] = useState([]) 
+    const [foods, setFoods] = useState([])
+    const navigation = useNavigation();
 
-    useEffect(()=>{
-        
-        async function fetchApi(){
+    useEffect(() => {
+
+        async function fetchApi() {
             const response = await api.get("/foods")
             setFoods(response.data)
         }
@@ -22,24 +26,62 @@ export function Home() {
 
     }, [])
 
-    function handleSearch(){
-        console.log("seu valor ", inputValue)
+
+    function handleSearch() {
+        if (!inputValue) return;
+
+        let input = inputValue;
+        setInputValue("")
+        navigation.navigate("Search", { name: input })
     }
 
 
     return (
         <SafeAreaView style={styles.container}>
             <Logo />
-            <Text style={styles.title} >Encontre a receita</Text>
-            <Text style={styles.title} >que combina com você</Text>
+            <MotiText style={styles.title}
+                from={{
+                    opacity: 0,
+                    translateY: 15
+                }}
+
+                animate={{
+                    opacity: 1,
+                    translateY: 0
+                }}
+
+                transition={{
+                    delay: 100,
+                    type: "timing",
+                    duration: 650
+                }}
+            >Encontre a receita</MotiText>
+
+            <MotiText style={styles.title}
+                from={{
+                    opacity: 0,
+                    translateY: 18
+                }}
+
+                animate={{
+                    opacity: 1,
+                    translateY: 0
+                }}
+
+                transition={{
+                    delay: 200,
+                    type: "timing",
+                    duration: 850
+                }}
+            >que combina com você</MotiText>
 
 
             <View style={styles.form} >
-                <TextInput 
-                placeholder='Digite o nome da comida..'
-                style={styles.input}
-                value={inputValue}
-                onChangeText={ (text) => setInputValue(text)}
+                <TextInput
+                    placeholder='Digite o nome da comida..'
+                    style={styles.input}
+                    value={inputValue}
+                    onChangeText={(text) => setInputValue(text)}
                 />
 
                 <TouchableOpacity onPress={handleSearch}>
@@ -47,11 +89,11 @@ export function Home() {
                 </TouchableOpacity>
             </View>
 
-            <FlatList 
-             data={foods}
-             keyExtractor={(item) => String(item.id)}
-             renderItem={({ item }) => <FoodList data={item} />}
-             showsVerticalScrollIndicator ={false}
+            <FlatList
+                data={foods}
+                keyExtractor={(item) => String(item.id)}
+                renderItem={({ item }) => <FoodList data={item} />}
+                showsVerticalScrollIndicator={false}
             />
 
         </SafeAreaView>
@@ -59,20 +101,20 @@ export function Home() {
 }
 
 const styles = StyleSheet.create({
-    container:{
+    container: {
         flex: 1,
-        backgroundColor:"#F3F9FF",
+        backgroundColor: "#F3F9FF",
         paddingTop: 36,
         paddingStart: 14,
         paddingEnd: 14,
     },
-    title:{
+    title: {
         fontSize: 26,
         fontWeight: "bold",
         color: "#0E0E0E",
     },
-    form:{
-        backgroundColor:'#FFF',
+    form: {
+        backgroundColor: '#FFF',
         width: '100%',
         borderRadius: 8,
         marginBottom: 16,
@@ -85,7 +127,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'space-between'
     },
-    input:{
+    input: {
         width: '90%',
         maxWidth: '90%',
         height: 54,

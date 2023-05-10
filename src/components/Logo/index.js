@@ -1,9 +1,26 @@
-import { Text, View, StyleSheet } from 'react-native'
+import { Text, StyleSheet } from 'react-native'
+import { View } from 'moti'
 
-export function Logo(){
-    return(
-        <View style={styles.logoArea}> 
-            <Text style={styles.logo} >
+
+export function Logo() {
+    return (
+        <View style={styles.logoArea}
+            from={{
+                opacity: 0,
+                translateX: -51
+            }}
+
+            animate={{
+                opacity: 1,
+                translateX: 0
+            }}
+
+            transition={{
+                type: "spring",
+                duration: 850
+            }}>
+            <Text style={styles.logo}
+            >
                 Receitas Fácil
             </Text>
         </View>
@@ -11,7 +28,7 @@ export function Logo(){
 }
 
 const styles = StyleSheet.create({
-    logoArea:{
+    logoArea: {
         backgroundColor: "#4CBE6C",
         alignSelf: "flex-start",
         padding: 8,
@@ -23,7 +40,7 @@ const styles = StyleSheet.create({
         borderBottomRightRadius: 32,
         marginBottom: 8
     },
-    logo:{
+    logo: {
         fontSize: 18,
         fontWeight: "bold",
         color: "#FFF",

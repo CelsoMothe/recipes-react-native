@@ -5,3 +5,6 @@ const api = axios.create({
 })
 
 export default api;
+
+
+// Para iniciar o servidor, execute no CMD local json-server –-watch -d 180 –-host SEU-IP db.json
